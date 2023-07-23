@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>并发编程笔记</title>
+      <link href="/2023/07/23/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/"/>
+      <url>/2023/07/23/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="并发编程笔记"><a href="#并发编程笔记" class="headerlink" title="并发编程笔记"></a>并发编程笔记</h2><h4 id="wait-amp-notify"><a href="#wait-amp-notify" class="headerlink" title="wait&amp;notify"></a>wait&amp;notify</h4><ul><li>原理</li></ul><p>已经获得锁的线程发现后续的运行不满足条件时，会调用wait方法，线程状态变成waiting，此时和等待锁的线程一样处于阻塞状态，不会占用CPU的时间片，只有当其他线获取到锁并且满足此线程运行的条件后，调用**notify(挑一个线程唤醒)或者notifyAll(唤醒所有线程)**方法唤醒该线程，使得该线程重新进入到队列中重新争抢锁</p><img src="/2023/07/23/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20230723173807210.png" class title="image-20230723173807210"><ul><li>wait&amp;sleep</li></ul><ol><li>区别</li></ol><p>①wait是Object的方法，sleep是Thread的方法</p><p>②调用wait会释放掉锁，而sleep还会占用着锁</p><p>③sleep不需要配合synchronized使用，wait必须要获得到锁才能调用，所以必须配合synchronized使用</p><ol start="2"><li>相同点：</li></ol><p>调用wait和sleep都会使线程进入到TIMED_WAITING状态</p><ul><li>wait&amp;notify的正确使用</li></ul><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//可能不满足条件的线程部分</span></span><br><span class="line"><span class="keyword">synchronized</span>(lock)&#123;</span><br><span class="line">    <span class="keyword">while</span>(!条件不成立)&#123;</span><br><span class="line">        lock.wait();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//干活代码</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//修改条件使以上线程继续运行的线程部分</span></span><br><span class="line">lock.notifyAll();</span><br></pre></td></tr></table></figure><p><strong>wait一般和notifyAll配合使用，如果使用的是notify，且该锁对象中有多个调用了wait方法的线程，此时因为随机唤醒线程的原因，会导致虚假唤醒的发生</strong></p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> JUC </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>《深入理解Java虚拟机》阅读笔记</title>
       <link href="/2023/07/03/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/"/>
       <url>/2023/07/03/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/</url>
