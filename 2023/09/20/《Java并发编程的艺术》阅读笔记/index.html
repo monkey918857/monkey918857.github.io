@@ -1,0 +1,478 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>《Java并发编程的艺术》阅读笔记 | Inequalitiesの博客</title><meta name="author" content="Inequalities"><meta name="copyright" content="Inequalities"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="并发编程重点概述两个关键字 volatile  保证可见性 可见性是让其他线程可见，现在的处理器都是多核的处理器，多核处理器就有多核CPU，每个CPU理论上可以提供一条线程，多个线程共同修改一个volatile 修饰的共享变量的时候，一旦一个线程拿到修改权限并且修改完之后，会立即把修改后的值过总线推送到主存中，此时其他的CPU会一直嗅探总线的数据流通，在缓存一致性协议的保障下，他能够嗅探到这条数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《Java并发编程的艺术》阅读笔记">
+<meta property="og:url" content="https://monkey918857.github.io/2023/09/20/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Inequalitiesの博客">
+<meta property="og:description" content="并发编程重点概述两个关键字 volatile  保证可见性 可见性是让其他线程可见，现在的处理器都是多核的处理器，多核处理器就有多核CPU，每个CPU理论上可以提供一条线程，多个线程共同修改一个volatile 修饰的共享变量的时候，一旦一个线程拿到修改权限并且修改完之后，会立即把修改后的值过总线推送到主存中，此时其他的CPU会一直嗅探总线的数据流通，在缓存一致性协议的保障下，他能够嗅探到这条数据">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/362fc6e9a2c5db6451f3cb8f3675b248.jpg?x-oss-process=image%2fresize%2cm_lfit%2cw_1920%2ch_1080">
+<meta property="article:published_time" content="2023-09-20T13:40:17.000Z">
+<meta property="article:modified_time" content="2023-10-01T11:48:37.026Z">
+<meta property="article:author" content="Inequalities">
+<meta property="article:tag" content="并发编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/362fc6e9a2c5db6451f3cb8f3675b248.jpg?x-oss-process=image%2fresize%2cm_lfit%2cw_1920%2ch_1080"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://monkey918857.github.io/2023/09/20/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '《Java并发编程的艺术》阅读笔记',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-10-01 19:48:37'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/style.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/./img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/362fc6e9a2c5db6451f3cb8f3675b248.jpg?x-oss-process=image%2fresize%2cm_lfit%2cw_1920%2ch_1080')"><nav id="nav"><span id="blog-info"><a href="/" title="Inequalitiesの博客"><span class="site-name">Inequalitiesの博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">《Java并发编程的艺术》阅读笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-09-20T13:40:17.000Z" title="发表于 2023-09-20 21:40:17">2023-09-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-10-01T11:48:37.026Z" title="更新于 2023-10-01 19:48:37">2023-10-01</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">6.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>21分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="《Java并发编程的艺术》阅读笔记"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h3 id="并发编程重点概述"><a href="#并发编程重点概述" class="headerlink" title="并发编程重点概述"></a>并发编程重点概述</h3><h4 id="两个关键字"><a href="#两个关键字" class="headerlink" title="两个关键字"></a>两个关键字</h4><ul>
+<li>volatile <ul>
+<li>保证可见性<ul>
+<li>可见性是让其他线程可见，现在的处理器都是多核的处理器，多核处理器就有多核CPU，每个CPU理论上可以提供一条线程，多个线程共同修改一个volatile 修饰的共享变量的时候，一旦一个线程拿到修改权限并且修改完之后，会立即把修改后的值过<strong>总线</strong>推送到主存中，此时其他的CPU会一直嗅探总线的数据流通，在<strong>缓存一致性协议</strong>的保障下，他能够嗅探到这条数据的修改，如果自己的缓存行中有这条数据，就会把这条数据置为不可用，当该线程再次用到这条数据的时候，需要在主存中重新读取，并保存到自己缓存行中</li>
+<li>关于CPU在嗅探总线的数据流通的时候，它这么知道这个数据就是volatile 修饰的呢？<ul>
+<li>当一个数据被volatile修饰后，被一个线程修改，并通过总线保存到主存时，它的汇编指令的码会在里面加一个lock关键词，lock指令有两层含义，第一，是将信息的修改推送到主存；第二，lock指令过总线的时候其他CPU会嗅探含有lock的指令，然后置其他缓存行为不可用</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>禁止指令重排序<ul>
+<li>volatile写之前加入storestore屏障，表示上面的普通写和volatile写不能重排序</li>
+<li>volatile写之后加入storeload屏障，表示下面的volatile读写和volatile写不能重排序</li>
+<li>volatile读之后加入loadload屏障，表示下面的普通读和volatile读不能重排序</li>
+<li>volatile读之后加入loadstore屏障，表示下面的普通写和volatile读不能重排序</li>
+</ul>
+</li>
+<li>在特殊情况下还能保证原子性<ul>
+<li>比如volatile修饰的变量i，进行i++操作的时候，就不能保证原子性，因为i++有三条JVM指令字节码。第一条，i load读取i这个变量；第二条，i add进行加一的操作；第三条，i store然后把相加后结果写回。所以被volatile修饰的变量是单条JVM指令字节码的时候就可以保证原子性，而volatile修饰的变量是多条JVM指令字节码的时候就不能保证原子性</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>synchronized<ul>
+<li>三种使用方式<ul>
+<li>作用到代码块上(锁可以是Object类型的成员变量，也可以使用this作为锁)</li>
+<li>多用在静态方法上(锁是当前的Class，因为静态方法在调用的时候是 类.方法 的形式进行调用，不需要创建对象，所以只能使用当前类的Class作为锁)</li>
+<li>作用到普通方法上(锁是当前的类的对象)</li>
+</ul>
+</li>
+<li>有一个Student类，其中有一个int类型的成员变量，同时提供set和get方法。给int变量加上volatile修饰可以保证原子性，因为set和get都是对应单条JVM字节码指令；不给int变量加上volatile进行修饰，而是给get和set方法加上synchronized也可以保证原子性<ul>
+<li>如果此时get操作多，set操作少，即读多写少的场景，volatile的方法更快，因为如果不对volatile修饰的变量进行修改，那么每个线程可以直接从线程的缓存行里面直接拿到</li>
+<li>如果此时get操作少，set操作多，即读少写多的场景，这个时候volatile就慢了，此时volatile修饰的变量一直修改，一直过总线写到主存中，其他的CPU一直在嗅探总线，一直把自己缓存行的数据置为不可用，每次都要透过总线从主存中拉取最新数据，严重损耗计算机的总线资源，synchronized这是就比较快了，因为写比较多，一个线程写的时候其他线程处于BLOCK状态，对于set方法来说处理器执行的是非常快的，也就是其他线程BLOCK的时间会非常短，<em>重量级锁可以提高程序的吞吐量</em></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Lock"><a href="#Lock" class="headerlink" title="Lock"></a>Lock</h4><p><em>lock相关的问题比较繁杂，所以要找到一个好的切入点进行总结，先从lock和synchronized的区别切入</em></p>
+<h5 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h5><ul>
+<li>synchronized是一个关键字，lock是一个接口，使用lock的话需要new出其子类来<ul>
+<li>lock接口中的方法<ul>
+<li>lock()方法：加锁</li>
+<li>unlock()方法：锁释放</li>
+<li>tryLock()方法：可以非阻塞的进行加锁</li>
+<li>tryLock(long time , TimeUnit unit)方法：可以超时性的非阻塞式加锁</li>
+<li>lockInterruptibly()方法：可中断式加锁</li>
+<li>newCondition()方法：配合实现等待通知机制</li>
+</ul>
+</li>
+<li>常用的实现子类是ReentrantLock和ReentrantReadWriteLock</li>
+</ul>
+</li>
+<li>synchronized是隐式加锁，lock是显式加锁<ul>
+<li>synchronized肉眼看不到加锁和解锁的过程，lock一定要在finally代码块中释放锁</li>
+</ul>
+</li>
+<li>synchronized可以作用到方法和代码块上，lock只能作用到代码块上<ul>
+<li>synchronized三种加锁方式<ul>
+<li>加到静态方法上使用的当前类的Class</li>
+<li>加到普通方法上使用的当前类的对象</li>
+<li>加到代码块上可以用this关键字，也可以new一个Object对象</li>
+<li>lock加锁就不用多说了，只能加在代码块上，同时别忘了进行锁的释放</li>
+</ul>
+</li>
+<li>synchronized作用到代码块上和作用到方法上，使用javap命令反编译成字节码指令有什么区别<ul>
+<li>synchronized作用到代码块上反编译之后，在代码块进入的点有一个monitorenter指令，在代码块出的点有一个monitorexit指令，而且monitorexit这个指令最少要有两个，一个是正常出代码块释放锁，一个是发生异常释放锁</li>
+<li>synchronized作用到方法上会在方法的flag上加一个acc_synchronized，<strong>后续学完JVM进行详细补充</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>lock支持非阻塞式加锁<ul>
+<li>lock接口中有两个关于非阻塞式加锁的方法，tryLock()方法和tryLock(long time , TimeUnit unit)方法，如果尝试获加锁失败直接返回，不会阻塞线程，那么线程就不会从用户态转为内核态，少一次线程上下文切换</li>
+</ul>
+</li>
+<li>lock支持可超时性加锁<ul>
+<li>tryLock(long time , TimeUnit unit)方法可以超时性加锁，一定时间内尝试加锁失败了，直接返回，是一个避免发生死锁的好办法</li>
+</ul>
+</li>
+<li>lock支持可中断式加锁<ul>
+<li>可中断的意思是一个线程在运行的时候，另一个线程想要对这个线程进行中断，lock中的lockInterruptibly()方法可以接受这种中断，synchronized做不到这一点</li>
+</ul>
+</li>
+<li>synchronized采用对象监视器，lock采用AQS<ul>
+<li>两个线程竞争一个synchronized锁，一条线程竞争成功，另一条线程竞争失败进入到ObjectMonitor中的EntryList(同步队列)，等到当前执行线程释放锁，被唤醒以后才重新进入到锁的竞争，但是当前执行线程调用了wait方法释放锁以后，会进入到ObjectMonitor中的WaitSet(等待队列)中</li>
+<li>AQS根据一个int类型的state变量，来确定这个锁有没有被获取，如果被获取则会加入到AQS双端队列的尾部，这里注意此时有可能是大量的线程同时竞争锁失败，然后同时放到双端队列的尾部，此时就会有线程安全的问题，这里采用的CAS的方式来保证进入双端队列尾部的线程安全，当获取锁的线程执行完成释放锁的时候，会通知自己的后继节点进行锁的竞争</li>
+</ul>
+</li>
+<li>在加锁和解锁时，synchronized有一个同步队列和一个等待队列，lock有一个同步队列和多个等待队列<ul>
+<li>lock可以new出多个Condition，一个Condition就有一个等待队列</li>
+</ul>
+</li>
+<li>锁竞争方面，synchronized只支持非公平锁，lock支持非公平锁和公平锁<ul>
+<li>到底什么叫公平，什么叫非公平(场景举例)<ul>
+<li>假设此时有A,B,C三条线程对lock锁进行竞争，A线程获取到锁了，B,C线程要依次进入到双端队列中进行等待，当A线程执行完成释放锁，唤醒B线程进行锁的竞争时，此时又来了另外十条线程竞争这个lock，如果B和这十条线程进行锁的竞争那么就是不公平，因为B线程已经在队列中排队等待了很久了，如果B不用和新来的线程竞争(新来的十条线程在CAS的保证下直接加入到双端队列的尾端)那么就是公平的</li>
+</ul>
+</li>
+<li>新来的十条线程怎么知道这是一个公平锁，并且加入到队列的？<ul>
+<li>新来的线程对于公平锁的竞争之前，会进行一个判断，就是判断自己是否有前置节点，如果没有就进入到队列排队，但是对于非公平锁的竞争就不会有这个判断</li>
+</ul>
+</li>
+<li>非公平锁的线程饥饿问题？<ul>
+<li>一条线程在竞争失败后进入到等待队列进行等待，下一次再次失败再次等待，如此反复线程一直处于等待状态，这就叫做线程饥饿</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>对于等待唤醒机制，synchronized与Object进行配合，lock与Condition接口进行配合<ul>
+<li>synchronized与Object的wait&#x2F;notify进行配合</li>
+<li>lock与Condition接口await和signal进行配合<ul>
+<li>拿到lock锁的线程，调用await方法时，就会进入到Condition的等待队列的尾节点中，<strong>不需要使用CAS直接加就行</strong>，因为线程在调用await方法之前先回把自己加入到等待队列的尾部，正因为此时还没有调用await方法，线程还持有着锁，所以进入到尾节点的时候不用CAS</li>
+</ul>
+</li>
+<li>调用await方法之后，这个线程经历了什么？<ul>
+<li>拿到lock锁的线程，调用await方法时，就会进入到Condition的等待队列的尾节点中，当他达到队列的头部时会被唤醒，此时这条线程会重新竞争lock锁，一旦竞争失败会使用CAS加入到同步队列的尾端，排队到同步队列的头部，直到他的前置节点线程释放锁以后，根据是否是公平锁重新竞争，竞争失败继续等待，竞争成功继续执行完await后面的逻辑</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>lock锁可以根据需要进行个性化开发 </li>
+<li>ReentrantReadWriteLock支持并发读<ul>
+<li>读-读可以并发执行，读-写，写-读，写-写 都不可以并发执行</li>
+<li>通过一个int类型的state变量来控制读写权限，他把一个32位的int变量分成高16位和低16位，高16位负责控制读，低16位负责控制写。当一个读线程来的时候会检查低16，如果低16位为0说明没有写线程，直接对高16位加一，然后进行读取，如果有写线程那么就会被阻塞。当一个写线程来的时候会检查高16位和低16位，此时不管是有写还是有读直接被阻塞，这是ReadWriteLock的加锁细节。如果是ReentrantReadWriteLock(表示可重入读写锁)的话，加读锁的时候，如果低16位不为0，会先判断持有写锁的线程是不是当前线程，如果是也会在高16位加一，加写锁的时候，如果低16位和高16位都不为0，此时会先判断持有这些锁的线程是不是当前线程，如果是则会在低16位加一</li>
+</ul>
+</li>
+</ul>
+<h4 id="锁升级"><a href="#锁升级" class="headerlink" title="锁升级"></a>锁升级</h4><p><em>背景：32位JVM虚拟机</em></p>
+<ul>
+<li><p>无锁状态</p>
+<ul>
+<li>当我们新创建一个对象的时候，它的对象头MarkWord里有25位的HashCode，4位的对象分代年龄，1位的偏向锁标记位，2位的锁标记位</li>
+<li><strong>当我们仅仅只是用new关键字创建一个对象的时候，此时如果没有显式&#x2F;隐式的调用Object里面的hashCode方法，那么hashCode的值不会存储在对象头中</strong>，此时的占位是0<ul>
+<li>显示调用hashCode：比如在类的构造器中直接调用super.hashCode()方法，这样我们对象头的MarkWord中是有hashCode的</li>
+<li>隐式调用hashCode：比如在构造函数中，对象创建完毕的一瞬间直接把该对象放入到了HashMap，HashSet这样的类Hash集合中，因为put方法的第一个参数就是哈希值，这个哈希值就是靠调用Object类的hashCode方法得到的</li>
+<li>如果该类重写了hashCode方法，然后在对象的创建过程中调用了重写以后的hashCode方法，那么同样不会把hashCode的值存放到对象头的MarkWord中，<strong>必须调用父类的hashCode方法才会把值存到对象头的MarkWord中</strong></li>
+</ul>
+</li>
+<li>对于分代年龄，此时由于对象刚刚创建，没有分代年龄，所以还是以0表示</li>
+<li>对于锁标记位，无锁状态和偏向锁状态的锁标记位都是01，他们的区别在于偏向锁标记位，无锁的偏向锁标记位是0，偏向锁状态的偏向锁标记位是1</li>
+</ul>
+</li>
+<li><p>无锁状态升级为偏向锁</p>
+<ul>
+<li>无锁状态想要升级位偏向锁状态，此时<strong>对象头的MarkWord中必须不能有hashCode值</strong>，理论上hashCode这个位置要保存上23位的线程ID和2位的Epoch，但是如果这个位置有hashCode的值就会对这个值进行覆盖，因为hashCode值没有替换这个逻辑也无法对这个值进行保存，所以这个行为是不允许的，所以此时就不能成为偏向锁</li>
+<li>如果想要成为偏向锁的对象的对象头的MarkWord没有存放hashCode值，此时就可以把线程ID放到前23位，Epoch的值放到后2位，偏向锁标记位从0变成1，锁标记位还是01不变</li>
+<li>偏向锁的好处在于，当一个线程想要再次获取锁，可以直接检查一下MarkWord里面保存的线程ID是不是当前线程的ID，如果是那么直接加锁成功，性能会有所提升</li>
+</ul>
+</li>
+<li><p>偏向锁升级为轻量级锁</p>
+<ul>
+<li>发生线程竞争的时候偏向锁一定会升级为轻量级锁吗？</li>
+<li>偏向锁升级为轻量级锁发生了线程的竞争这句话是对的，但是反过来说就不一定对了，例如下面加粗斜体的例子，虽然有线程的竞争但是锁的偏向发生了改变但是没有升级为轻量级锁</li>
+<li>偏向锁升级为轻量级锁的过程：<em><strong>加入A线程获取到了偏向锁把自己的线程ID存放到MarkWord中，此时又来了一个B线程也想要获取偏向锁，他会先检查锁标记状态是不是01，偏向锁标记位是不是1，如果锁标记位是01，且偏向锁标记位是1，那么线程B就知道此时这个锁已经有线程偏向了，这时线程B会检查线程A的线程存活状态，如果此时A线程没有在执行同步代码，那么B线程会直接把这个偏向锁置为无锁状态，然后去竞争这个偏向锁，如果竞争成功则把自己的线程ID放入到MarkWord当中，此时偏向锁就偏向B线程了</strong></em>，但是如果线程B争抢失败了，线程C争抢成功了，把线程C的ID存放到了MarkWord中并执行线程C对应的代码，这是时候线程B就很烦，他会执行一个更加高级的操作，叫做<strong>偏向锁的撤销</strong>，线程B会等待线程C执行到JVM安全点，对线程C的栈进行遍历，遍历的是锁记录，遍历完成可能会有三种情况</li>
+<li>可能会直接把锁的状态变为无锁状态，然后把锁标记位置为00，即轻量级锁<ul>
+<li>这个地方可以理解为锁从偏向锁直接升级为轻量级锁，所谓把锁的状态变为无锁状态就是把锁标记位置为00，并且把偏向线程ID和Epoch置为空，偏向锁标记位是0。之所以上面说把锁的状态变为无锁状态，是因为真正的轻量级锁的对象头应该除了2位的锁标记位之外，其余的30位都应该指向栈帧中锁记录的指针，但是此时的状态比较<strong>游离</strong>，暂且理解为无锁状态</li>
+</ul>
+</li>
+<li><em><strong>可能会把偏向锁重新偏向到线程B</strong></em><ul>
+<li>JVM除了有开启偏向锁的配置之外，还有批量重偏向和批量撤销的操作。场景举例：比如有一个Student类，然后这个Student类创建了40个对象，线程A把这四十个对象进行偏向锁的加锁操作，然后线程A一直对这四十个对象保持代码的执行，此时来了个线程B，<strong>线程B要对这四十个对象进行锁撤销的操作</strong>，此时这1-19个对象直接升级为轻量级锁也就是上面所说的游离状态，当执行到第20个对象时，JVM就会反思自己是不是最开始的时候偏向错了，然后就把后面的20-39个对象批量重偏向到线程B，因为JVM里有配置批量偏向锁的阈值是20，但是当线程B撤销到第40个对象的时候，此时已经有20个对象偏向给线程B了，线程B还在继续要求偏向，JVM又不高兴了，既然这个对象的竞争这么激烈那么你就不适合作为偏向锁，然后直接把这个对象置为不可使用偏向锁</li>
+<li>可能会把该锁直接置为不可使用偏向锁<ul>
+<li>书接上文，至于置为不可使用偏向锁体现在new出第41个student对象的时候，此时该对象的对象头的MarkWord的锁标记位直接就是00，其实JVM这个地方还有一个默认参数，也就是两万五千毫秒，如果25秒以内批量撤销没有达到40这个阈值，那么从20-39的这个重偏向可以重新计数，<strong>也就是说25秒内批量撤销没有达到阈值，那么此时就不会发生置为不可使用偏向锁这一状态</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>轻量级锁record</p>
+<ul>
+<li>竞争过程：假设此时多条线程竞争时，如果A线程竞争成功了，A线程会直接把锁对象头里的MarkWord里面的25位hashCode，4位的分代年龄和1位的偏向锁标记，这30位的内容复制到A线程的栈帧中的一个叫做lockRecord即锁记录中，然后把对象头的MarkWord中对应的30位的位置放上一个指向当前线程栈帧中lockRecord这块区域的一个指针，当B线程来竞争轻量级锁的时候，他会使用CAS的方式把锁对象头对应位置的内容放到自己栈帧的lockRecord中，此时肯定是失败的，因为锁对象头本来该存放的hashCode，分代年龄等内容已经被替换成了指针了，此时B线程会进行一个CAS的自旋，再次尝试替换，默认循环十次，如果这十次还没有成功，那么轻量级锁将会升级为重量级锁</li>
+<li>轻量级锁升级为重量级锁： 自旋十次没有成功的B线程，会把原本指向A线程中栈帧的lockRecord的指针替换为指向重量级锁的指针即ObjectMonitor，此时线程A执行完对应代码要使用CAS进行锁的释放时，会发现此时锁对象头内的指针已经不是轻量级锁的指针了，已经变成了重量级锁的指针了，所以这个时候他就知道要进行重量级锁解锁的过程了</li>
+<li>重量级锁解锁的过程：线程A会先把栈帧中lockRecord记录的hashcode，分代年龄等内容保存到ObjectMonitor的header属性中保证这些内容不丢失，然后把ObjectMonitor的owner属性保存成自己</li>
+</ul>
+</li>
+</ul>
+<h4 id="双重检查锁"><a href="#双重检查锁" class="headerlink" title="双重检查锁"></a>双重检查锁</h4><p><em>双重检查锁是基于单例模式的两次改造，第一次改造实是在synchronized同步代码块的外边，加一个判空处理，减少一些线程对于锁的竞争而变为阻塞状态，导致从用户态转化为内核态对于资源的消耗，这样会导致一些问题，因为在new对象的时候有三个步骤，第一，开辟一块内存空间，第二，初始化对象，第三，把instance指向这片内存空间，此时如果不用volatile修饰的话，可能会导致第二步和第三步发生指令重排序，在多线程的情况下其他线程访问到判空处理那一步时，他只会关心这个instance是否有指向，所以此时他会认为instance已经初始化好了，导致得到一个错误的结果</em></p>
+<p><em><strong>加上volatile修饰的话会导致第二步和第三步不会发生重排序</strong></em>，这句话是错误的！！！！！！！！！！！</p>
+<p>因为当我们new一个对象的时候，new是写在我们Java代码里面的，new这个关键词对应的JVM字节码指令也是new，volatile作为Java中的一个关键词，他做的添加屏障只能做到JVM字节码指令这个级别，它无法涉及到new这个关键词带来的更加底层的操作，也就是创建对象的那三步操作，这就像lock锁锁住了三行代码，在这三行代码执行结束前其他的线程进不来，而volatile就像是包住了new的这个过程保证了创建对象结束前其他线程进不来，从而保证线程安全</p>
+<h4 id="线程状态转化"><a href="#线程状态转化" class="headerlink" title="线程状态转化"></a>线程状态转化</h4><p><em>new 一个线程出来进入new状态，然后调用start方法进入runnable状态，在runnable状态下调用join，wait，park方法会进入waiting状态，调用sleep，wait(long)等方法会进入到timed_waiting状态，加锁失败的话会进入到blocked状态，最后是线程的TERMINATED终止状态，在Java的Thread类中的state内部枚举类中只有这六种状态</em></p>
+<p><strong>网上说的七种状态区别在于把runnable状态分成了running状态和ready状态，在running状态的线程调用了yield方法会进入到ready状态，此时放弃了CPU的执行权</strong></p>
+<ul>
+<li>NEW状态</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Thread state for a thread which has not yet started.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">NEW</span><br></pre></td></tr></table></figure>
+
+<p>线程还没有开始的状态，也就是说还没有调用start方法</p>
+<ul>
+<li>RUNNABLE状态</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Thread state for a runnable thread.  A thread in the runnable</span></span><br><span class="line"><span class="comment"> * state is executing in the Java virtual machine but it may</span></span><br><span class="line"><span class="comment"> * be waiting for other resources from the operating system</span></span><br><span class="line"><span class="comment"> * such as processor.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">RUNNABLE</span><br></pre></td></tr></table></figure>
+
+<p>在JVM中线程已经开始了，但会因为其他的一些调用进入到waiting状态</p>
+<ul>
+<li>WAITING状态</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Thread state for a waiting thread.</span></span><br><span class="line"><span class="comment"> * A thread is in the waiting state due to calling one of the</span></span><br><span class="line"><span class="comment"> * following methods:</span></span><br><span class="line"><span class="comment"> * &lt;ul&gt;</span></span><br><span class="line"><span class="comment"> *   &lt;li&gt;&#123;<span class="doctag">@link</span> Object#wait() Object.wait&#125; with no timeout&lt;/li&gt;</span></span><br><span class="line"><span class="comment"> *   &lt;li&gt;&#123;<span class="doctag">@link</span> #join() Thread.join&#125; with no timeout&lt;/li&gt;</span></span><br><span class="line"><span class="comment"> *   &lt;li&gt;&#123;<span class="doctag">@link</span> LockSupport#park() LockSupport.park&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment"> * &lt;/ul&gt;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;A thread in the waiting state is waiting for another thread to</span></span><br><span class="line"><span class="comment"> * perform a particular action.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">WAITING</span><br></pre></td></tr></table></figure>
+
+<p>在调用wait，join，park方法后会进入到waiting状态，调用notify，unpark等方法会使线程从waiting状态切换到runnable状态</p>
+<ul>
+<li>TIMED_WAITING状态</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Thread state for a waiting thread with a specified waiting time.</span></span><br><span class="line"><span class="comment"> * A thread is in the timed waiting state due to calling one of</span></span><br><span class="line"><span class="comment"> * the following methods with a specified positive waiting time:</span></span><br><span class="line"><span class="comment"> * &lt;ul&gt;</span></span><br><span class="line"><span class="comment"> *   &lt;li&gt;&#123;<span class="doctag">@link</span> #sleep Thread.sleep&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment"> *   &lt;li&gt;&#123;<span class="doctag">@link</span> Object#wait(long) Object.wait&#125; with timeout&lt;/li&gt;</span></span><br><span class="line"><span class="comment"> *   &lt;li&gt;&#123;<span class="doctag">@link</span> #join(long) Thread.join&#125; with timeout&lt;/li&gt;</span></span><br><span class="line"><span class="comment"> *   &lt;li&gt;&#123;<span class="doctag">@link</span> LockSupport#parkNanos LockSupport.parkNanos&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment"> *   &lt;li&gt;&#123;<span class="doctag">@link</span> LockSupport#parkUntil LockSupport.parkUntil&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment"> * &lt;/ul&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">TIMED_WAITING</span><br></pre></td></tr></table></figure>
+
+<p>在调用sleep，wait(long)，join，parkNanos，parkUntil这些方法后会进入到TIMED_WAITING状态</p>
+<ul>
+<li>BLOCKED状态</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Thread state for a thread blocked waiting for a monitor lock.</span></span><br><span class="line"><span class="comment"> * A thread in the blocked state is waiting for a monitor lock</span></span><br><span class="line"><span class="comment"> * to enter a synchronized block/method or</span></span><br><span class="line"><span class="comment"> * reenter a synchronized block/method after calling</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> Object#wait() Object.wait&#125;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">BLOCKED</span><br></pre></td></tr></table></figure>
+
+<p>只有在synchronized代码块或者synchronized修饰的方法的范围内才有可能进入到BLOCKED状态</p>
+<ul>
+<li>TERMINATED状态</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Thread state for a terminated thread.</span></span><br><span class="line"><span class="comment"> * The thread has completed execution.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">TERMINATED</span><br></pre></td></tr></table></figure>
+
+<p>线程运行完毕，执行结束</p>
+<ul>
+<li>锁释放(使用join来说明)</li>
+</ul>
+<p>join方法底层也调用了wait方法，但是很多博客文章上说调用join方法不会释放锁，他会释放锁，但是他释放的是调用join方法的线程对应的对象的锁，举个例子，在synchronized(Object obj)代码块里面创建一个thread1线程，然后thread1线程调用join方法，此时释放的不是obj这个对象锁，而是thread1线程自身对象的Object Monitor锁</p>
+<ul>
+<li>waiting和timed_waiting的区别</li>
+</ul>
+<p>time_waiting状态不用唤醒，等时间到了以后自动执行后续代码，waiting状态需要显式或者隐式的唤醒，显式唤醒就是通过调用wait或者park方法进入waiting状态，通过调用notify或者unpark方法进行唤醒，隐式唤醒就是通过调用join方法，等到其他线程执行结束后会在线程内部接收到一条消息，然后执行后面的代码</p>
+<ul>
+<li>有了waiting和timed_waiting这两种状态为什么还要一个blocked状态</li>
+</ul>
+<p>线程在竞争锁失败后会进到EntryList同步队列，线程状态变为blocked状态，线程在调用wait方法进入到WaitSet等待队列，线程进入到waiting状态，当waiting状态被唤醒时会重新进行锁的竞争，此时如果竞争失败，那么会进入到EntryList同步队列，状态变位block，所以此时状态和队列进行了一个对应，为了把不同的线程状态进行一个更加细致的划分</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://monkey918857.github.io">Inequalities</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://monkey918857.github.io/2023/09/20/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">https://monkey918857.github.io/2023/09/20/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://monkey918857.github.io" target="_blank">Inequalitiesの博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">并发编程</a></div><div class="post_share"><div class="social-share" data-image="https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/362fc6e9a2c5db6451f3cb8f3675b248.jpg?x-oss-process=image%2fresize%2cm_lfit%2cw_1920%2ch_1080" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/08/29/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/" title="数据结构算法笔记"><img class="cover" src="https://www.toopic.cn/public/uploads/small/1658045182318165804518239.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">数据结构算法笔记</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/./img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Inequalities</div><div class="author-info__description">欢迎访问Inequalitiesの博客</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/monkey918857"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/monkey918857" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://space.bilibili.com/472353013?spm_id_from=444.41.0.0" target="_blank" title="小破绽"><i class="fab fa-algolia"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">非科班转码小猴的博客</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E9%87%8D%E7%82%B9%E6%A6%82%E8%BF%B0"><span class="toc-text">并发编程重点概述</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%A4%E4%B8%AA%E5%85%B3%E9%94%AE%E5%AD%97"><span class="toc-text">两个关键字</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Lock"><span class="toc-text">Lock</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%8C%BA%E5%88%AB"><span class="toc-text">区别</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%94%81%E5%8D%87%E7%BA%A7"><span class="toc-text">锁升级</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%8C%E9%87%8D%E6%A3%80%E6%9F%A5%E9%94%81"><span class="toc-text">双重检查锁</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81%E8%BD%AC%E5%8C%96"><span class="toc-text">线程状态转化</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/09/20/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" title="《Java并发编程的艺术》阅读笔记"><img src="https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/362fc6e9a2c5db6451f3cb8f3675b248.jpg?x-oss-process=image%2fresize%2cm_lfit%2cw_1920%2ch_1080" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《Java并发编程的艺术》阅读笔记"/></a><div class="content"><a class="title" href="/2023/09/20/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" title="《Java并发编程的艺术》阅读笔记">《Java并发编程的艺术》阅读笔记</a><time datetime="2023-09-20T13:40:17.000Z" title="发表于 2023-09-20 21:40:17">2023-09-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/08/29/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/" title="数据结构算法笔记"><img src="https://www.toopic.cn/public/uploads/small/1658045182318165804518239.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="数据结构算法笔记"/></a><div class="content"><a class="title" href="/2023/08/29/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/" title="数据结构算法笔记">数据结构算法笔记</a><time datetime="2023-08-29T01:16:55.000Z" title="发表于 2023-08-29 09:16:55">2023-08-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/23/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/" title="并发编程笔记"><img src="https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/362fc6e9a2c5db6451f3cb8f3675b248.jpg?x-oss-process=image%2fresize%2cm_lfit%2cw_1920%2ch_1080" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="并发编程笔记"/></a><div class="content"><a class="title" href="/2023/07/23/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/" title="并发编程笔记">并发编程笔记</a><time datetime="2023-07-23T08:16:18.000Z" title="发表于 2023-07-23 16:16:18">2023-07-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/03/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" title="《深入理解Java虚拟机》阅读笔记"><img src="https://www.toopic.cn/public/uploads/small/165804573748165804573697.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《深入理解Java虚拟机》阅读笔记"/></a><div class="content"><a class="title" href="/2023/07/03/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" title="《深入理解Java虚拟机》阅读笔记">《深入理解Java虚拟机》阅读笔记</a><time datetime="2023-07-03T13:28:33.000Z" title="发表于 2023-07-03 21:28:33">2023-07-03</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/03/%E6%A0%A1%E9%95%BF%E4%B9%A6%E7%B1%8D%E6%8E%A8%E8%8D%90/" title="校长书籍推荐"><img src="https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/53f31f4f8ca1bb064ea18a398db64db9.jpg?x-oss-process=image%2fresize%2cm_lfit%2cw_3840%2ch_2160" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="校长书籍推荐"/></a><div class="content"><a class="title" href="/2023/07/03/%E6%A0%A1%E9%95%BF%E4%B9%A6%E7%B1%8D%E6%8E%A8%E8%8D%90/" title="校长书籍推荐">校长书籍推荐</a><time datetime="2023-07-03T09:22:04.000Z" title="发表于 2023-07-03 17:22:04">2023-07-03</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2023 By Inequalities</div><div class="footer_custom_text">如果你真的想蜕变，那就从今天开始！</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><div class="js-pjax"></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="鸡,你,太,美,你干嘛~,哎呦~" data-fontsize="15px" data-random="false" async="async"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
